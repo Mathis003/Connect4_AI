@@ -1,6 +1,137 @@
 import random
 import numpy as np
 
+class Node:
+    # Class that represent a node of the tree
+    def __init__(self, move, value, board, count):
+        self.__value = value
+        self.__move = move
+        self.__board = board
+        self.__count = count
+        self.__children = []
+
+    def set_count(self, new_count):
+        self.__count = new_count
+
+    def get_count(self):
+        return self.__count
+
+    def get_children(self):
+        return self.__children
+
+    def get_value(self):
+        return self.__value
+
+    def set_value(self, new_value):
+        self.__value = new_value
+
+    def get_board(self):
+        return self.__board
+
+    def get_move(self):
+        return self.__move
+
+class Tree:
+    # Class that represent the tree of all the possible moves for one move of the player
+    def __init__(self, depth, board, player, opponent_player, root_move, root_value):
+        self.depth = depth
+        self.board = board
+        self.player = player
+        self.opponent_player = opponent_player
+        self.root_move = root_move
+        self.root_value = root_value
+
+        self.root = Node(root_move, root_value, board, 1)
+
+        self.number_move_played = number_move_played(self.board)
+        self.count = 1
+
+        self.createTree(depth)
+
+    def createTree(self, depth):
+        for i in range(depth):
+            if i == 0:
+                list_children = self.createChildren(self.root, self.board, self.player)
+            else:
+                for i in range(len(list_children)):
+                    root = self.root.get_children()[i]
+                    list_children += self.createChildren(root, self.board, self.player)
+
+            # Inverse the players
+            save_player = self.player
+            self.player = self.opponent_player
+            self.opponent_player = save_player
+
+    def createChildren(self, root, board, player):
+        all_possible_moves = determine_all_possible_moves(board)
+        for move in all_possible_moves:
+            new_board = np.copy(board)
+            row, col = move[0], move[1]
+            new_board[row][col] = player
+
+            root.set_count(self.evaluation(new_board, self.player, row, col, root.get_count()))
+            root.get_children().append(Node(move, root.get_count(), new_board, root.get_count()))
+        return root.get_children()
+
+    # TODO !!!!!!!!!!!!!!
+    def evaluation(self, board, player, row, col, count):
+        if search_win_stroke(board, player, row, col):
+            if player == 1:
+                count += 1
+                return count
+            else:
+                count -= 1
+                return count
+        else:
+            return count
+
+def minimax(root_position, depth, alpha, beta, maximizing_player, minimizing_player):
+    if depth == 0 or root_position.get_children() == []:
+        return root_position.get_value()
+
+    if maximizing_player:
+        maxEval = -float('inf')
+        for child in root_position.get_children():
+            eval = minimax(child, depth - 1, alpha, beta, minimizing_player, maximizing_player)
+            child.set_value(eval)
+            maxEval = max(maxEval, eval)
+            alpha = max(alpha, eval)
+            if beta <= alpha:
+                break
+        return maxEval
+
+    else:
+        minEval = float('inf')
+        for child in root_position.get_children():
+            eval = minimax(child, depth - 1, alpha, beta, maximizing_player, minimizing_player)
+            child.set_value(eval)
+            minEval = min(minEval, eval)
+            beta = min(beta, eval)
+            if beta <= alpha:
+                break
+        return minEval
+
+def choose_best_score_with_move(player, opponent_player, root_position):
+    best_score = minimax(root_position, 2, - float('inf'), float('inf'), player, opponent_player)
+    list_best_score_child = []
+
+    for child in root_position.get_children():
+        if child.get_value() == best_score:
+            list_best_score_child.append(child)
+
+    if len(list_best_score_child) == 1:
+        return (best_score, list_best_score_child[0].get_move()[1])
+    else:
+        return (best_score, random.choice(list_best_score_child).get_move()[1])
+
+def number_move_played(board):
+    sum = 0
+    for row in range(6):
+        for col in range(7):
+            if board[row][col] != 0:
+                sum += 1
+    return sum
+
 def remove_full_columns(board, list_column):
     for i in range(len(board[0])):
         if board[0][i] != 0:
@@ -15,114 +146,6 @@ def create_possible_moves(board, list_column):
                 list_possible_moves.append([i, col])
                 break
     return list_possible_moves
-
-def search_win_strokePuiss2(board, player, row, col):
-    # The try/except allows to avoid error IndexOutOfBounds !
-    # Vertical
-    count = 0
-    try:
-        if (board[row + 1][col] == player):
-            count += 1
-    except:
-        pass
-
-    # Horizontale
-    try:
-        if (board[row][col + 1] == player):
-            count += 1
-    except:
-        pass
-    try:
-        if (board[row][col - 1] == player):
-            count += 1
-    except:
-        pass
-
-    # Diagonale
-    try:
-        if (board[row + 1][col + 1] == player):
-            count += 1
-    except:
-        pass
-    try:
-        if (board[row - 1][col - 1] == player):
-            count += 1
-    except:
-        pass
-    try:
-        if (board[row - 1][col + 1] == player):
-            count += 1
-    except:
-        pass
-
-    try:
-        if (board[row + 1][col - 1] == player):
-            count += 1
-    except:
-        pass
-    return count
-
-def search_win_strokePuiss3(board, player, row, col):
-    # The try/except allows to avoid error IndexOutOfBounds !
-    # Vertical
-    count = 0
-    try:
-        if (board[row + 1][col] == player and board[row + 2][col] == player):
-            count += 1
-    except:
-        pass
-
-    # Horizontale
-    try:
-        if (board[row][col + 1] == player and board[row][col - 1]):
-            count += 1
-    except:
-        pass
-    try:
-        if (board[row][col + 1] == player and board[row][col + 2] == player):
-            count += 1
-    except:
-        pass
-    try:
-        if (board[row][col - 1] == player and board[row][col - 2]):
-            count += 1
-    except:
-        pass
-
-    # Diagonale
-    try:
-        if (board[row + 1][col + 1] == player and board[row + 2][col + 2] == player):
-            count += 1
-    except:
-        pass
-    try:
-        if (board[row - 1][col - 1] == player and board[row - 2][col - 2] == player):
-            count += 1
-    except:
-        pass
-    try:
-        if (board[row - 1][col - 1] == player and board[row + 1][col + 1] == player):
-            count += 1
-    except:
-        pass
-
-    try:
-        if (board[row + 1][col - 1] == player and board[row + 2][col - 2] == player):
-            count += 1
-    except:
-        pass
-    try:
-        if (board[row - 1][col + 1] == player and board[row - 2][col + 2] == player):
-            count += 1
-    except:
-        pass
-    try:
-        if (board[row - 1][col + 1] == player and board[row + 1][col - 1] == player):
-            count += 1
-    except:
-        pass
-    return count
-
 
 def search_win_stroke(board, player, row, col):
     # The try/except allows to avoid error IndexOutOfBounds !
@@ -206,21 +229,11 @@ def Check_if_first_stroke_of_the_games(board):
             return False
     return True
 
-
-def evaluation_function(board, player, opponent_player, list_moves):
-    # Bloque 2 jetons (ennemi) = +10pts (Par blocage)
-    # Fait au moins un duo de jetons = +5pts (Par duo)
-    dicoPoints_move = {}
-    for move in list_moves:
-        total_points = 0
-        row, col = move[0], move[1]
-        total_points += 10 * search_win_strokePuiss3(board, opponent_player, row, col)
-        total_points += 5 * search_win_strokePuiss2(board, player, row, col)
-        dicoPoints_move[total_points] = move
-
-    maxPoints = max(dicoPoints_move.keys())
-    return dicoPoints_move[maxPoints][1]
-
+def determine_all_possible_moves(board):
+    list_column = [i for i in range(len(board[0]))]
+    list_column = remove_full_columns(board, list_column)
+    list_moves = create_possible_moves(board, list_column)
+    return list_moves
 
 def ai_student(board, player):
 
@@ -232,59 +245,18 @@ def ai_student(board, player):
     if player == 1:
         opponent_player = 2
 
-    list_column = [i for i in range(len(board[0]))]
-    list_column = remove_full_columns(board, list_column)
-    list_moves = create_possible_moves(board, list_column)
+    list_moves = determine_all_possible_moves(board)
 
     if len(list_moves) == 1:
         col = list_moves[0][1]
         return col
 
-    # Check if the player can win => Play the move.
+    dico_best_score_with_move = {}
     for move in list_moves:
-        row, col = move[0], move[1]
-        count = search_win_stroke(board, player, row, col)
-        if count > 0:
-            return col
+        tree = Tree(2, board, player, opponent_player, move, 0) # depth, board, player, opponent_player, root_move, root_value
+        score, col = choose_best_score_with_move(player, opponent_player, tree.root)
+        dico_best_score_with_move[score] = col
 
-    # Check if the opponent player can win the next turn => Play the move to counter him.
-    for move in list_moves:
-        row, col = move[0], move[1]
-        count = search_win_stroke(board, opponent_player, row, col)
-        if count > 0:
-            return col
-
-    # Check if the possible move allows to the opponent player to win the next turn => Remove the move from the list
-    for move in list_moves:
-        row, col = move[0], move[1]
-        # Simulate that the move is played
-        board[row, col] = player
-        if row > 0:
-            count = search_win_stroke(board, opponent_player, row - 1, col)
-            if count > 0:
-                list_moves.remove([row, col])
-
-        board[row, col] = 0 # Reupdate the good value
-
-        # Check if the possible move allows to the player to do a Puissance3
-        # => Simulate a turn again to see if the player can always win
-        for move in list_moves:
-            row, col = move[0], move[1]
-            count = search_win_strokePuiss3(board, player, row, col)
-            if count != 0:
-                # Simulate that the player play again to see if he can win (of two ways)
-                board[row, col] = player
-                list_columnSIMULATION = [i for i in range(len(board[0]))]
-                list_columnSIMULATION = remove_full_columns(board, list_columnSIMULATION)
-                list_movesSIMULATION = create_possible_moves(board, list_columnSIMULATION)
-                for moveSIMULATION in list_movesSIMULATION:
-                    countSIMULATION = search_win_stroke(board, player, moveSIMULATION[0], moveSIMULATION[1])
-                    if countSIMULATION >= 2:
-                        board[row, col] = 0
-                        return col
-                board[row, col] = 0
-
-
-    # In this case if none of the player can win => Choose the best stroke to play
-    # (None of the stroke allows to the opponent to directly wins).
-    return evaluation_function(board, player, opponent_player, list_moves)
+    max_score = max(dico_best_score_with_move.keys())
+    col = dico_best_score_with_move[max_score]
+    return col

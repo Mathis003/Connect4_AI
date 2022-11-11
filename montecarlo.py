@@ -34,7 +34,7 @@ def play_n_games(n):
     return [number1, number0]
 
 # Complete the two arrays
-for i in range(len(nb_games) - 1):
+for i in range(len(nb_games) - 3):
     for j in range(N):
         number_of_repetition = nb_games[i]
         list_numbers = play_n_games(number_of_repetition)
