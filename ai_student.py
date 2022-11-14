@@ -9,7 +9,7 @@ class Node:
         self.move = move
         self.player = player  # Player that played the move right now
 
-        self.depth = 8
+        self.depth = 9
         self.children = []
 
     def create_children(self, player, list_parent_node, list_board):
@@ -27,7 +27,7 @@ class Node:
                 for move in available_moves:
 
                     row, col = move[0], move[1]
-                    new_board = board.copy()
+                    new_board = np.copy(board)
                     new_board[row][col] = player
 
                     child_node = Node(0, new_board, player, move)
@@ -42,13 +42,16 @@ class Node:
             self.create_children(get_opponent_player(player), list_parent_node, list_board)
 
 
-def evaluate_win_game(board, player, col):
+def evaluate_win_game(board, player, maximizing_player, col):
     if check_connect4(board, player, col):
-        return True, 1000
+        if player == maximizing_player:
+            return True, 1000
+        else:
+            return True, -1000
     return False, 0
 
 
-def evaluate_position(board, player):
+def evaluate_position(board, maximizing_player):
     total_score = 0
     list_score_pos = [[3, 4, 5, 7, 5, 4, 3],
                       [4, 6, 8, 10, 8, 6, 4],
@@ -60,76 +63,56 @@ def evaluate_position(board, player):
     for i in range(6):
         for j in range(7):
             tile = board[i][j]
-            if tile == player:
+            if tile == maximizing_player:
                 total_score += list_score_pos[i][j]
-            elif tile == get_opponent_player(player):
+            elif tile == get_opponent_player(maximizing_player):
                 total_score -= list_score_pos[i][j]
-
-    if player == 2:
-        total_score = - total_score
 
     return total_score
 
 
-def minimax(root_node, depth, alpha, beta,  maximizing_player):
+def minimax(root_node, depth, maximizing_player):
 
     if root_node.move != None:
-        value_first_player, value_second_player = 0, 0
 
-        enter1, value_first_player = evaluate_win_game(root_node.board, root_node.player, root_node.move[1])
-        value_first_player *= (depth + 1)
+        enter, value_player = evaluate_win_game(root_node.board, root_node.player, maximizing_player, root_node.move[1])
+        value_player *= (depth + 1)
 
-        for i in range(7):
-            enter2, value_second_player = evaluate_win_game(root_node.board, root_node.player, root_node.move[1])
-            value_second_player *= (depth + 1)
-            if enter2 == True:
-                break
-
-        value_total = value_first_player - value_second_player
-
-        if root_node.player == 2:
-            value_total = - value_total
-
-        root_node.value += value_total
-
-        if (enter1 == True) or (enter2 == True):
+        if enter:
             root_node.children = []
+            root_node.value = value_player
+            return root_node.value
 
     if depth == 0:
-        root_node.value = evaluate_position(root_node.board, root_node.player)
+        root_node.value = evaluate_position(root_node.board, maximizing_player)
         return root_node.value
 
-    if maximizing_player == 2:
+    if root_node.player != maximizing_player:
         max_eval = -np.inf
         for child in root_node.children:
-            eval = minimax(child, depth - 1, alpha, beta, 1)
+            eval = minimax(child, depth - 1, maximizing_player)
             max_eval = max(max_eval, eval)
-            alpha = max(alpha, eval)
-            if beta <= alpha:
-                break
         root_node.value = max_eval
         return max_eval
 
     else:
         min_eval = np.inf
         for child in root_node.children:
-            eval = minimax(child, depth - 1, alpha, beta, 2)
+            eval = minimax(child, depth - 1, maximizing_player)
             min_eval = min(min_eval, eval)
-            beta = min(beta, eval)
-            if beta <= alpha:
-                break
         root_node.value = min_eval
         return min_eval
 
 
-def choose_best_score_with_move(root_node, depth):
-    best_score = minimax(root_node, depth, -np.inf, np.inf, root_node.player)
+def choose_best_score_with_move(root_node, depth, maximizing_player):
+    best_score = minimax(root_node, depth, maximizing_player)
     list_best_move = []
 
     for child in root_node.children:
         if child.value == best_score:
             list_best_move.append(child.move)
 
+    print(list_best_move)
     if len(list_best_move) == 1:
         return list_best_move[0][1]
 
@@ -161,6 +144,7 @@ def get_availables_moves(board):
             if board[i][col] == 0:
                 available_moves.append([i, col])
                 break
+
     return available_moves
 
 
@@ -293,18 +277,11 @@ def ai_student(board, player):
     if check_first_stroke(board_copy):
         return 3  # Best strategy to begin at the middle
 
-    depth_tree = 8
+    depth_tree = 9
 
     # Create the tree of all possible moves
     root_node = Node(0, board_copy, get_opponent_player(player), None)
     root_node.create_children(player, [root_node], [board_copy])
 
-    ############################################################
-    #                                                          #
-    # THE TREE IS GOOD => I CHECKED IT AND IT WORKS PERFECTLY #
-    #                                                          #
-    ############################################################
-
-    # TODO
-    best_col = choose_best_score_with_move(root_node, depth_tree)
-    return best_col + 1
+    best_col = choose_best_score_with_move(root_node, depth_tree, player)
+    return best_col

@@ -5,7 +5,7 @@ import time
 
 t = time.time()
 
-N = 1 # Nb repetitions
+N = 10 # Nb repetitions
 nb_games = [10, 100, 1000, 10000]
 # Array with the percentage of success for player 1 for [10, 100, 1000, 10000] games, N times each
 win1 = np.zeros((N, len(nb_games)))

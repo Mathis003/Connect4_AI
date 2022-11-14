@@ -167,7 +167,7 @@ def run_game():
         if the_board[0][move1] != 0:
             print('ERROR: The chosen column is already full.')
         the_board = update_board(the_board, move1, 1)
-        print_board(the_board) # Uncomment this line for visualisation / debugging
+        #print_board(the_board) # Uncomment this line for visualisation / debugging
         if check_win(the_board, move1, 1):
             print('Player 🔴 won!')
             return 1
@@ -180,7 +180,7 @@ def run_game():
         if the_board[0][move2] != 0:
             print('ERROR: The chosen column is already full.')
         the_board = update_board(the_board, move2, 2)
-        print_board(the_board)  # Uncomment this line for visualisation / debugging
+        #print_board(the_board)  # Uncomment this line for visualisation / debugging
         if check_win(the_board, move2, 2):
             print('Player 🔵 won!')
             return 2
