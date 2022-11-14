@@ -22,6 +22,11 @@ def ai_random(arg_board, player):
     # Otherwise, plays random
     return rd.choice(nonfull_cols)
 
+def player_move(board, player):
+    col = int(input("Colonne n° : "))
+    return col
+
+
 
 def update_board(arg_board, col, player):
     board = np.copy(arg_board)
@@ -186,3 +191,37 @@ def run_game():
             return 2
     print('Draw!')
     return 0
+
+def run_game_with_player():
+    # Run the game. In 21 turns, the board is full and the game is over
+    the_board = np.full((6, 7), 0)
+    for x in range(21):
+        # print('Player 🔴 turn:')
+        ####################################################################################
+        ### Replace the line below with your own AI for sections 3 and 4 of the homework ###
+        ####################################################################################
+        move1 = ai_student(the_board, 1)
+        if the_board[0][move1] != 0:
+            print('ERROR: The chosen column is already full.')
+        the_board = update_board(the_board, move1, 1)
+        print_board(the_board) # Uncomment this line for visualisation / debugging
+        if check_win(the_board, move1, 1):
+            print('Player 🔴 won!')
+            return 1
+
+        # print('Player 🔵 turn:')
+        ####################################################################################
+        ### Replace the line below with your own AI for sections 3 and 4 of the homework ###
+        ####################################################################################
+        move2 = player_move(the_board, 2) - 1
+        if the_board[0][move2] != 0:
+            print('ERROR: The chosen column is already full.')
+        the_board = update_board(the_board, move2, 2)
+        print_board(the_board)  # Uncomment this line for visualisation / debugging
+        if check_win(the_board, move2, 2):
+            print('Player 🔵 won!')
+            return 2
+    print('Draw!')
+    return 0
+
+print(run_game_with_player())

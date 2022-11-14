@@ -9,7 +9,7 @@ class Node:
         self.move = move
         self.player = player  # Player that played the move right now
 
-        self.depth = 9
+        self.depth = 6
         self.children = []
 
     def create_children(self, player, list_parent_node, list_board):
@@ -112,7 +112,6 @@ def choose_best_score_with_move(root_node, depth, maximizing_player):
         if child.value == best_score:
             list_best_move.append(child.move)
 
-    print(list_best_move)
     if len(list_best_move) == 1:
         return list_best_move[0][1]
 
@@ -277,7 +276,7 @@ def ai_student(board, player):
     if check_first_stroke(board_copy):
         return 3  # Best strategy to begin at the middle
 
-    depth_tree = 9
+    depth_tree = 6
 
     # Create the tree of all possible moves
     root_node = Node(0, board_copy, get_opponent_player(player), None)
@@ -285,3 +284,13 @@ def ai_student(board, player):
 
     best_col = choose_best_score_with_move(root_node, depth_tree, player)
     return best_col
+
+
+board = [[0, 0, 0, 2, 0, 0, 0],
+         [0, 0, 1, 1, 0, 0, 0],
+         [0, 2, 1, 1, 1, 0, 0],
+         [0, 1, 2, 1, 2, 0, 0],
+         [1, 2, 1, 2, 1, 2, 0],
+         [2, 2, 2, 1, 1, 2, 0]]
+
+print(ai_student(board, 1))
