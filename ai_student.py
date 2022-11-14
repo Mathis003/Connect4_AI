@@ -1,262 +1,275 @@
 import random
+
 import numpy as np
 
 class Node:
     # Class that represent a node of the tree
-    def __init__(self, move, value, board, count):
-        self.__value = value
-        self.__move = move
-        self.__board = board
-        self.__count = count
-        self.__children = []
-
-    def set_count(self, new_count):
-        self.__count = new_count
-
-    def get_count(self):
-        return self.__count
-
-    def get_children(self):
-        return self.__children
-
-    def get_value(self):
-        return self.__value
-
-    def set_value(self, new_value):
-        self.__value = new_value
-
-    def get_board(self):
-        return self.__board
-
-    def get_move(self):
-        return self.__move
-
-class Tree:
-    # Class that represent the tree of all the possible moves for one move of the player
-    def __init__(self, depth, board, player, opponent_player, root_move, root_value):
-        self.depth = depth
+    def __init__(self, value, board, player, move):
+        self.value = value
         self.board = board
+        self.move = move
         self.player = player
-        self.opponent_player = opponent_player
-        self.root_move = root_move
-        self.root_value = root_value
 
-        self.root = Node(root_move, root_value, board, 1)
+        self.depth = 4
+        self.children = []
 
-        self.number_move_played = number_move_played(self.board)
-        self.count = 1
-
-        self.createTree(depth)
-
-    def createTree(self, depth):
-        for i in range(depth):
-            if i == 0:
-                list_children = self.createChildren(self.root, self.board, self.player)
-            else:
-                for i in range(len(list_children)):
-                    root = self.root.get_children()[i]
-                    list_children += self.createChildren(root, self.board, self.player)
-
-            # Inverse the players
-            save_player = self.player
-            self.player = self.opponent_player
-            self.opponent_player = save_player
-
-    def createChildren(self, root, board, player):
-        all_possible_moves = determine_all_possible_moves(board)
-        for move in all_possible_moves:
-            new_board = np.copy(board)
-            row, col = move[0], move[1]
-            new_board[row][col] = player
-
-            root.set_count(self.evaluation(new_board, self.player, row, col, root.get_count()))
-            root.get_children().append(Node(move, root.get_count(), new_board, root.get_count()))
-        return root.get_children()
-
-    # TODO !!!!!!!!!!!!!!
-    def evaluation(self, board, player, row, col, count):
-        if search_win_stroke(board, player, row, col):
-            if player == 1:
-                count += 1
-                return count
-            else:
-                count -= 1
-                return count
+    def create_children(self, player, list_parent_node, list_board):
+        if self.depth == 0:
+            return
         else:
-            return count
+            list_children = []
+            new_list_board = []
+            for i in range(len(list_parent_node)):
 
-def minimax(root_position, depth, alpha, beta, maximizing_player, minimizing_player):
-    if depth == 0 or root_position.get_children() == []:
-        return root_position.get_value()
+                board = list_board[i]
+                parent = list_parent_node[i]
+                available_moves = get_availables_moves(board)
+
+                for move in available_moves:
+
+                    row, col = move[0], move[1]
+                    new_board = board.copy()
+                    new_board[row][col] = player
+
+                    child_node = Node(0, new_board, player, move)
+
+                    parent.children.append(child_node)
+                    list_children.append(child_node)
+                    new_list_board.append(new_board)
+
+            list_board = new_list_board
+            list_parent_node = list_children
+            self.depth -= 1
+            self.create_children(get_opponent_player(player), list_parent_node, list_board)
+
+
+def evaluate_win_game(child_node, board, player, col):
+    if check_connect4(board, player, col):
+        if player == 1:
+            child_node.value += 1000
+        else:
+            child_node.value -= -1000
+
+
+def evaluate_position(player, move):
+    list_score_pos = [[3, 4, 5, 7, 5, 4, 3],
+                      [4, 6, 8, 10, 8, 6, 4],
+                      [5, 8, 11, 13, 11, 8, 5],
+                      [5, 8, 11, 13, 11, 8, 5],
+                      [4, 6, 8, 10, 8, 6, 4],
+                      [3, 4, 5, 7, 5, 4, 3]]
+
+    if player == 1:
+        return list_score_pos[move[0]][move[1]]
+    else:
+        return - list_score_pos[move[0]][move[1]]
+
+
+def minimax(root_node, depth, alpha, beta, maximizing_player):
+    # This function is the minimax algorithm
+    if depth == 0 or root_node.children == []:
+        evaluate_win_game(root_node, root_node.board, root_node.player, root_node.move[1])
+        root_node.value += evaluate_position(get_opponent_player(root_node.player), root_node.move)
+        return root_node.value
 
     if maximizing_player:
-        maxEval = -float('inf')
-        for child in root_position.get_children():
-            eval = minimax(child, depth - 1, alpha, beta, minimizing_player, maximizing_player)
-            child.set_value(eval)
-            maxEval = max(maxEval, eval)
+        max_eval = -np.inf
+        for child in root_node.children:
+            eval = minimax(child, depth - 1, alpha, beta, False)
+            max_eval = max(max_eval, eval)
             alpha = max(alpha, eval)
             if beta <= alpha:
                 break
-        return maxEval
+        root_node.value = max_eval
+        return max_eval
 
     else:
-        minEval = float('inf')
-        for child in root_position.get_children():
-            eval = minimax(child, depth - 1, alpha, beta, maximizing_player, minimizing_player)
-            child.set_value(eval)
-            minEval = min(minEval, eval)
+        min_eval = np.inf
+        for child in root_node.children:
+            eval = minimax(child, depth - 1, alpha, beta, True)
+            min_eval = min(min_eval, eval)
             beta = min(beta, eval)
             if beta <= alpha:
                 break
-        return minEval
+        root_node.value = min_eval
+        return min_eval
 
-def choose_best_score_with_move(player, opponent_player, root_position):
-    best_score = minimax(root_position, 2, - float('inf'), float('inf'), player, opponent_player)
-    list_best_score_child = []
 
-    for child in root_position.get_children():
-        if child.get_value() == best_score:
-            list_best_score_child.append(child)
+def choose_best_score_with_move(root_node, depth):
+    best_score = minimax(root_node, depth, -np.inf, np.inf, True)
+    list_best_move = []
+    for child in root_node.children:
+        if child.value == best_score:
+            list_best_move.append(child.move)
 
-    if len(list_best_score_child) == 1:
-        return (best_score, list_best_score_child[0].get_move()[1])
+    if len(list_best_move) == 1:
+        return list_best_move[0][1]
+
     else:
-        return (best_score, random.choice(list_best_score_child).get_move()[1])
+        return random.choice(list_best_move)[1]
 
-def number_move_played(board):
-    sum = 0
-    for row in range(6):
-        for col in range(7):
-            if board[row][col] != 0:
-                sum += 1
-    return sum
 
-def remove_full_columns(board, list_column):
-    for i in range(len(board[0])):
-        if board[0][i] != 0:
-            list_column.remove(i)
-    return list_column
+def update_board(board, move, player):
+    # This function updates the board
+    board[move[0]][move[1]] = player
 
-def create_possible_moves(board, list_column):
-    list_possible_moves = []
-    for col in list_column:
-        for i in reversed(range(len(board))):
+
+def get_availables_col(board):
+    # Returns the available moves
+    return np.where(board[0] == 0)[0]
+
+
+def get_availables_moves(board):
+
+    first_row = board[0]
+    available_col = []
+    for i in range(len(first_row)):
+        if first_row[i] == 0:
+            available_col.append(i)
+
+    available_moves = []
+    for col in available_col:
+        for i in reversed(range(6)):
             if board[i][col] == 0:
-                list_possible_moves.append([i, col])
+                available_moves.append([i, col])
                 break
-    return list_possible_moves
+    return available_moves
 
-def search_win_stroke(board, player, row, col):
-    # The try/except allows to avoid error IndexOutOfBounds !
-    # Vertical
-    count = 0
-    try:
-        if (board[row + 1][col] == player and board[row + 2][col] == player and board[row + 3][col] == player):
-            count += 1
-    except:
-        pass
 
-    # Horizontale
-    try:
-        if (board[row][col + 1] == player and board[row][col - 1] == player and board[row][col - 2] == player):
-            count += 1
-    except:
-        pass
-    try:
-        if (board[row][col + 1] == player and board[row][col - 1] == player and board[row][col + 2] == player):
-            count += 1
-    except:
-        pass
-    try:
-        if (board[row][col + 1] == player and board[row][col + 2] == player and board[row][col + 3] == player):
-            count += 1
-    except:
-        pass
-    try:
-        if (board[row][col - 1] == player and board[row][col - 2] == player and board[row][col - 3] == player):
-            count += 1
-    except:
-        pass
+def check_connect4(board, player, col):
+    # This function checks if the player won with his last move.
+    # The arguments are the board and the last move of the last player.
+    # First, we locate the row of this last move.
+    row = 6
+    for i in reversed(range(6)):
+        if board[i][col] == player:
+            row = i
+            break
 
-    # Diagonale
-    try:
-        if (board[row + 1][col + 1] == player and board[row + 2][col + 2] == player and board[row + 3][col + 3] == player):
-            count += 1
-    except:
-        pass
-    try:
-        if (board[row - 1][col - 1] == player and board[row - 2][col - 2] == player and board[row - 3][col - 3] == player):
-            count += 1
-    except:
-        pass
-    try:
-        if (board[row + 1][col - 1] == player and board[row + 2][col - 2] == player and board[row + 3][col - 3] == player):
-            count += 1
-    except:
-        pass
-    try:
-        if (board[row - 1][col + 1] == player and board[row - 2][col + 2] == player and board[row - 3][col + 3] == player):
-            count += 1
-    except:
-        pass
-    try:
-        if (board[row - 1][col + 1] == player and board[row - 2][col + 2] == player and board[row + 1][col - 1] == player):
-            count += 1
-    except:
-        pass
-    try:
-        if (board[row + 1][col - 1] == player and board[row + 2][col - 2] == player and board[row - 1][col + 1] == player):
-            count += 1
-    except:
-        pass
-    try:
-        if (board[row - 1][col - 1] == player and board[row - 2][col - 2] == player and board[row + 1][col + 1] == player):
-            count += 1
-    except:
-        pass
-    try:
-        if (board[row + 1][col + 1] == player and board[row + 2][col + 2] == player and board[row - 1][col - 1] == player):
-            count += 1
-    except:
-        pass
+    # Check left
+    if col > 2:
+        if board[row][col - 1] == player:
+            if board[row][col - 2] == player:
+                if board[row][col - 3] == player:
+                    return True
+    # Check 2 lefts and 1 right
+    if col > 1 and col < 6:
+        if board[row][col - 1] == player:
+            if board[row][col - 2] == player:
+                if board[row][col + 1] == player:
+                    return True
+    # Check 1 left and 2 rights
+    if col > 0 and col < 5:
+        if board[row][col - 1] == player:
+            if board[row][col + 1] == player:
+                if board[row][col + 2] == player:
+                    return True
+    # Check right
+    if col < 4:
+        if board[row][col + 1] == player:
+            if board[row][col + 2] == player:
+                if board[row][col + 3] == player:
+                    return True
+    # Check up
+    if row > 2:
+        if board[row - 1][col] == player:
+            if board[row - 2][col] == player:
+                if board[row - 3][col] == player:
+                    return True
+    # Check 2 ups and 1 down
+    if row > 1 and row < 5:
+        if board[row - 1][col] == player:
+            if board[row - 2][col] == player:
+                if board[row + 1][col] == player:
+                    return True
+    # Check 1 up and 2 downs
+    if row > 0 and row < 4:
+        if board[row - 1][col] == player:
+            if board[row + 1][col] == player:
+                if board[row + 2][col] == player:
+                    return True
+    # Check down
+    if row < 3:
+        if board[row + 1][col] == player:
+            if board[row + 2][col] == player:
+                if board[row + 3][col] == player:
+                    return True
+    # Check NW (North West)
+    if col > 2 and row > 2:
+        if board[row - 1][col - 1] == player:
+            if board[row - 2][col - 2] == player:
+                if board[row - 3][col - 3] == player:
+                    return True
+    # Check 2 NW and 1 SE
+    if col > 1 and col < 6 and row > 1 and row < 5:
+        if board[row - 1][col - 1] == player:
+            if board[row - 2][col - 2] == player:
+                if board[row + 1][col + 1] == player:
+                    return True
+    # Check 1 NW and 2 SE
+    if col > 0 and col < 5 and row > 0 and row < 4:
+        if board[row - 1][col - 1] == player:
+            if board[row + 1][col + 1] == player:
+                if board[row + 2][col + 2] == player:
+                    return True
+    # Check SE (South East)
+    if col < 4 and row < 3:
+        if board[row + 1][col + 1] == player:
+            if board[row + 2][col + 2] == player:
+                if board[row + 3][col + 3] == player:
+                    return True
+    # Check NE
+    if col < 4 and row > 2:
+        if board[row - 1][col + 1] == player:
+            if board[row - 2][col + 2] == player:
+                if board[row - 3][col + 3] == player:
+                    return True
+    # Check 2 NE and 1 SW
+    if col > 0 and col < 5 and row > 1 and row < 5:
+        if board[row - 1][col + 1] == player:
+            if board[row - 2][col + 2] == player:
+                if board[row + 1][col - 1] == player:
+                    return True
+    # Check 1 NE and 2 SW
+    if col > 1 and col < 6 and row > 0 and row < 4:
+        if board[row - 1][col + 1] == player:
+            if board[row + 1][col - 1] == player:
+                if board[row + 2][col - 2] == player:
+                    return True
+    # Check SW
+    if col > 2 and row < 3:
+        if board[row + 1][col - 1] == player:
+            if board[row + 2][col - 2] == player:
+                if board[row + 3][col - 3] == player:
+                    return True
+    return False
 
-    return count
 
-def Check_if_first_stroke_of_the_games(board):
-    for i in range(len(board[0])):
-        if board[-1][i] != 0:
-            return False
-    return True
+def get_opponent_player(player):
+    if player == 1:
+        return 2
+    else:
+        return 1
 
-def determine_all_possible_moves(board):
-    list_column = [i for i in range(len(board[0]))]
-    list_column = remove_full_columns(board, list_column)
-    list_moves = create_possible_moves(board, list_column)
-    return list_moves
+def check_first_stroke(board):
+    np_board = board.copy()
+    if np_board.sum() == 0:
+        return True
+    return False
 
 def ai_student(board, player):
+    # This function is the AI that choose the best move
 
-    # If this is the first stroke of the game
-    if Check_if_first_stroke_of_the_games(board):
-        return int(len(board[0]) / 2) # Play at the middle (best strategy)
+    board_copy = board.copy()
 
-    opponent_player = 1
-    if player == 1:
-        opponent_player = 2
+    if check_first_stroke(board_copy):
+        return 3  # Best strategy to begin at the middle
 
-    list_moves = determine_all_possible_moves(board)
+    depth_tree = 4
 
-    if len(list_moves) == 1:
-        col = list_moves[0][1]
-        return col
+    # Create the tree of all possible moves
+    root_node = Node(0, board_copy, player, None)
+    root_node.create_children(player, [root_node], [board_copy])
 
-    dico_best_score_with_move = {}
-    for move in list_moves:
-        tree = Tree(2, board, player, opponent_player, move, 0) # depth, board, player, opponent_player, root_move, root_value
-        score, col = choose_best_score_with_move(player, opponent_player, tree.root)
-        dico_best_score_with_move[score] = col
-
-    max_score = max(dico_best_score_with_move.keys())
-    col = dico_best_score_with_move[max_score]
-    return col
+    best_col = choose_best_score_with_move(root_node, depth_tree)
+    return best_col
