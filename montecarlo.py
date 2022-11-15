@@ -53,6 +53,8 @@ win1_mean = np.mean(win1, axis=0)
 draw_mean = np.mean(draw, axis=0)
 print(win1_mean)
 print(draw_mean)
+elapsed = time.time() - t
+print('Elapsed time: ', elapsed)
 
 # Plot the results in the required format.
 # Please do not modify
@@ -64,14 +66,11 @@ for i in range(len(nb_games)):
     plt.scatter(nb_games[i], win1_mean[i], c = 'blue', marker = 'x', s = 50)
     plt.scatter(nb_games[i], draw_mean[i], c = 'red', marker = 'x', s = 50)
 
-plt.legend(['Victoire joueur 1', 'Ex-aequo', 'Moyenne victoire joueur 1', 'Moyenne ex-aequo'])
+plt.legend(['Victoire joueur 1', 'Ex-aequo', 'Moyenne victoire joueur 1', 'Moyenne ex-aequo'], loc=7)
 plt.xlabel('Nombre de parties')
 plt.ylabel('Probabilite en %')
 plt.xscale("log")
 plt.ylim((-10,100))
 plt.show()
 
-elapsed = time.time() - t
-print('Elapsed time: ', elapsed)
-
-plt.savefig('MCplot.png', format='png')
+#plt.savefig('MCplot.png', format='png')

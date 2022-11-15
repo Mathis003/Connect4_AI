@@ -224,4 +224,4 @@ def run_game_with_player():
     print('Draw!')
     return 0
 
-print(run_game_with_player())
+#print(run_game_with_player())
