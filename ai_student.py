@@ -369,7 +369,7 @@ def check_first_stroke(board):
     return False
 
 def ai_student(board, player):
-    # This function is the AI that choose the best move. At least, he tries to. :)
+    # This function is the AI that choose the best move. At least, he tries to :)
 
     board_copy = board.copy()
 
