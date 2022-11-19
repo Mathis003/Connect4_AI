@@ -12,7 +12,7 @@ class Node:
         self.player = player  # Player that played the move right now
 
         # Attributes of the tree (to create it)
-        self.depth = 5
+        self.depth = 4
         self.children = []  # CREATE ALL THE TREE ! => Recursive function
 
     def create_children(self, player, list_parent_node, list_board, maximizing_player):
@@ -41,7 +41,7 @@ class Node:
 
                     child_node = Node(0, new_board, player, move)  # Create the child node
 
-                    enter, score = evaluate_win_game(child_node.board, child_node.player, maximizing_player, child_node.move[1])
+                    enter, score = evaluate_win_game(child_node.board, child_node.player, maximizing_player, child_node.move[0], child_node.move[1])
                     if enter:
                         child_node.value = score * (self.depth + 1)
                         child_node.children = []
@@ -61,9 +61,9 @@ class Node:
             self.create_children(get_opponent_player(player), list_parent_node, list_board, maximizing_player)
 
 
-def evaluate_win_game(board, player, maximizing_player, col):
+def evaluate_win_game(board, player, maximizing_player, row, col):
     # Check if the player wins the game
-    if check_connect4(board, player, col):
+    if check_connect4(board, player, row, col):
         if player == maximizing_player:
             return True, 1000000  # The maximizing player wins
         else:
@@ -159,7 +159,7 @@ def score_evaluation(player, opponent_player, board, move, maximizing_player, fa
     return score
 
 
-def minimax(root_node, depth, alpha, beta, maximizing_player):
+def minimax(root_node, depth, maximizing_player):
     # This function is the minimax algorithm with alpha-beta pruning => remove the useless nodes
 
     if depth == 0: # If we reach the maximum depth
@@ -175,11 +175,8 @@ def minimax(root_node, depth, alpha, beta, maximizing_player):
     if root_node.player != maximizing_player:
         max_eval = -np.inf
         for child in root_node.children:
-            eval = minimax(child, depth - 1, alpha, beta, maximizing_player) # Recursive call
+            eval = minimax(child, depth - 1, maximizing_player) # Recursive call
             max_eval = max(max_eval, eval)
-            alpha = max(alpha, eval)
-            if beta <= alpha:
-                break
         root_node.value = max_eval # Update the value of the node
         return max_eval
 
@@ -187,18 +184,15 @@ def minimax(root_node, depth, alpha, beta, maximizing_player):
     else:
         min_eval = np.inf
         for child in root_node.children:
-            eval = minimax(child, depth - 1, alpha, beta, maximizing_player) # Recursive call
+            eval = minimax(child, depth - 1, maximizing_player) # Recursive call
             min_eval = min(min_eval, eval)
-            beta = min(beta, eval)
-            if beta <= alpha:
-                break
         root_node.value = min_eval # Update the value of the node
         return min_eval
 
 
 def choose_best_score_with_move(root_node, depth, maximizing_player):
     # This function chooses the best move to do
-    best_score = minimax(root_node, depth, -np.inf, np.inf, maximizing_player) # Get the best score with the minimax algorithm
+    best_score = minimax(root_node, depth, maximizing_player) # Get the best score with the minimax algorithm
     list_best_child = []
 
     # Check which move(s) correspond to the best score
@@ -209,7 +203,6 @@ def choose_best_score_with_move(root_node, depth, maximizing_player):
     # If there is only one move
     if len(list_best_child) == 1:
         return (list_best_child[0].move)[1]
-
     # If there are several moves
     else:
         # Get the best move with the static evaluation of the position (of the root_node's children)
@@ -244,15 +237,9 @@ def get_availables_moves(board):
     return available_moves
 
 
-def check_connect4(board, player, col):
+def check_connect4(board, player, row, col):
     # COPY/PASTE OF THE FUNCTION PROVIDED IN CONNECT4.PY
     # This function checks if the player wins the game => return True if he does, False otherwise.
-
-    row = 6
-    for i in reversed(range(6)):
-        if board[i][col] == player:
-            row = i
-            break
 
     # Check left
     if col > 2:
@@ -376,7 +363,8 @@ def ai_student(board, player):
     if check_first_stroke(board_copy):
         return len(board[0]) // 2  # Best strategy to begin at the middle => Avoid to lose time to do some calculations whereas the middle is ALWAYS the best place to begin.
 
-    depth_tree = 5  # Depth of the tree (the number of "moves's floors" that the AI can foresee to do)
+    # Too long for a depth greater than 6
+    depth_tree = 4  # Depth of the tree (the number of "moves's floors" that the AI can foresee to do)
 
     # Create the tree of all possible moves
     root_node = Node(0, board_copy, get_opponent_player(player), None)

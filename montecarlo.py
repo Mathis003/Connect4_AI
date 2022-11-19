@@ -5,7 +5,7 @@ import time
 
 t = time.time()
 
-N = 10 # Nb repetitions
+N = 10  # Nb repetitions
 nb_games = [10, 100, 1000, 10000]
 # Array with the percentage of success for player 1 for [10, 100, 1000, 10000] games, N times each
 win1 = np.zeros((N, len(nb_games)))
@@ -34,7 +34,7 @@ def play_n_games(n):
     return [number1, number0]
 
 # Complete the two arrays
-for i in range(len(nb_games) - 2):
+for i in range(len(nb_games) - 3):
     for j in range(N):
         number_of_repetition = nb_games[i]
         list_numbers = play_n_games(number_of_repetition)
@@ -51,8 +51,8 @@ for i in range(len(nb_games) - 2):
 # Computes and prints the mean for each [10, 100, 1000, 10000]
 win1_mean = np.mean(win1, axis=0)
 draw_mean = np.mean(draw, axis=0)
-print(win1_mean)
-print(draw_mean)
+print("win mean = {}".format(win1_mean))
+print("draw mean = {}".format(draw_mean))
 elapsed = time.time() - t
 print('Elapsed time: ', elapsed)
 
@@ -66,11 +66,11 @@ for i in range(len(nb_games)):
     plt.scatter(nb_games[i], win1_mean[i], c = 'blue', marker = 'x', s = 50)
     plt.scatter(nb_games[i], draw_mean[i], c = 'red', marker = 'x', s = 50)
 
-plt.legend(['Victoire joueur 1', 'Ex-aequo', 'Moyenne victoire joueur 1', 'Moyenne ex-aequo'], loc=7)
+plt.legend(['Victoire joueur 1', 'Ex-aequo', 'Moyenne victoire joueur 1', 'Moyenne ex-aequo'], loc=5)
 plt.xlabel('Nombre de parties')
 plt.ylabel('Probabilite en %')
 plt.xscale("log")
 plt.ylim((-10,100))
 plt.show()
 
-#plt.savefig('MCplot.png', format='png')
+plt.savefig('MCplot.png', format='png')
