@@ -160,7 +160,7 @@ def score_evaluation(player, opponent_player, board, move, maximizing_player, fa
 
 
 def minimax(root_node, depth, maximizing_player):
-    # This function is the minimax algorithm with alpha-beta pruning => remove the useless nodes
+    # This function is the minimax algorithm
 
     if depth == 0: # If we reach the maximum depth
         if root_node.value == 0:

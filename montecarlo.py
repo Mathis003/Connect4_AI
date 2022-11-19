@@ -2,75 +2,71 @@ import numpy as np
 import matplotlib.pyplot as plt
 import connect4
 import time
+from multiprocessing import Pool, cpu_count
 
 t = time.time()
 
-N = 10  # Nb repetitions
+N = 10
 nb_games = [10, 100, 1000, 10000]
-# Array with the percentage of success for player 1 for [10, 100, 1000, 10000] games, N times each
+
 win1 = np.zeros((N, len(nb_games)))
-# Array with the percentage of draws for player 1 for [10, 100, 1000, 10000] games, N times each
 draw = np.zeros((N, len(nb_games)))
 
-##################################
-### START : To do for students ###
-##################################
+if __name__ == '__main__':
 
-def play_n_games(n):
-    """
-    Simulate n games of Puissance4 with the help of the method "connect4.run_game()".
-    :param n: number of games to simulate
-    :return: a list of two numbers => The first one is the number of games win by the player 1
-                                      and the second one is the number of game with draw as end.
-    """
-    number0, number1 = 0, 0
-    for i in range(n):
-        number = connect4.run_game()
-        if number == 1:
-            number1 += 1
-        elif number == 0:
-            number0 += 1
+    list_numbers = []
 
-    return [number1, number0]
+    def callback(result):
+        list_numbers.append(result)
 
-# Complete the two arrays
-for i in range(len(nb_games) - 3):
-    for j in range(N):
-        number_of_repetition = nb_games[i]
-        list_numbers = play_n_games(number_of_repetition)
-        number_wins_by_player1, number_draw_games = list_numbers[0], list_numbers[1]
-        # Update the arrays with the percentage
-        win1[j][i] = 100 * (number_wins_by_player1 / number_of_repetition)
-        draw[j][i] = 100 * (number_draw_games / number_of_repetition)
+    for i in range(len(nb_games)):
+
+        pool = Pool(processes=(cpu_count()))
+        for j in range(N):
+
+            number0, number1 = 0, 0
+            d = [k for k in range(nb_games[i])]
+
+            for iter in d:
+                pool.apply_async(connect4.run_game, args=(), callback=callback)
+
+        pool.close()
+        pool.join()
+
+        for f in range(N):
+            if f == 0:
+                new_list = list_numbers[:(f + 1) * nb_games[i] + 1]
+            if f == N - 1:
+                new_list = list_numbers[f * nb_games[i]:]
+                win1[f][i] = 100 * (new_list.count(1) / nb_games[i])
+                draw[f][i] = 100 * (new_list.count(0) / nb_games[i])
+            else:
+                new_list = list_numbers[f * nb_games[i] + 1 : (f + 1) * nb_games[i] + 1]
+                win1[f][i] = 100 * (new_list.count(1) / nb_games[i])
+                draw[f][i] = 100 * (new_list.count(0) / nb_games[i])
+
+        list_numbers = []
 
 
-################################
-### END : To do for students ###
-################################
+    win1_mean = np.mean(win1, axis=0)
+    draw_mean = np.mean(draw, axis=0)
+    print(win1)
+    print(draw)
+    print("win mean = {}".format(win1_mean))
+    print("draw mean = {}".format(draw_mean))
+    elapsed = time.time() - t
+    print("Time elapsed : {}".format(elapsed))
 
-# Computes and prints the mean for each [10, 100, 1000, 10000]
-win1_mean = np.mean(win1, axis=0)
-draw_mean = np.mean(draw, axis=0)
-print("win mean = {}".format(win1_mean))
-print("draw mean = {}".format(draw_mean))
-elapsed = time.time() - t
-print('Elapsed time: ', elapsed)
+    plt.figure()
+    for i in range(len(nb_games)):
+        plt.scatter(np.full(N, nb_games[i]), win1[:,i], c = 'blue', s = 10)
+        plt.scatter(np.full(N, nb_games[i]), draw[:,i], c = 'red', s = 10)
+        plt.scatter(nb_games[i], win1_mean[i], c = 'blue', marker = 'x', s = 50)
+        plt.scatter(nb_games[i], draw_mean[i], c = 'red', marker = 'x', s = 50)
 
-# Plot the results in the required format.
-# Please do not modify
-
-plt.figure()
-for i in range(len(nb_games)):
-    plt.scatter(np.full(N, nb_games[i]), win1[:,i], c = 'blue', s = 10)
-    plt.scatter(np.full(N, nb_games[i]), draw[:,i], c = 'red', s = 10)
-    plt.scatter(nb_games[i], win1_mean[i], c = 'blue', marker = 'x', s = 50)
-    plt.scatter(nb_games[i], draw_mean[i], c = 'red', marker = 'x', s = 50)
-
-plt.legend(['Victoire joueur 1', 'Ex-aequo', 'Moyenne victoire joueur 1', 'Moyenne ex-aequo'], loc=5)
-plt.xlabel('Nombre de parties')
-plt.ylabel('Probabilite en %')
-plt.xscale("log")
-plt.ylim((-10,100))
-plt.show()
-
-plt.savefig('MCplot.png', format='png')
+    plt.legend(['Victoire joueur 1', 'Ex-aequo', 'Moyenne victoire joueur 1', 'Moyenne ex-aequo'], loc=5)
+    plt.xlabel('Nombre de parties')
+    plt.ylabel('Probabilite en %')
+    plt.xscale("log")
+    plt.ylim((-10,100))
+    plt.show()

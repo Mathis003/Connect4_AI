@@ -168,28 +168,28 @@ def run_game():
         ####################################################################################
         ### Replace the line below with your own AI for sections 3 and 4 of the homework ###
         ####################################################################################
-        move1 = ai_random(the_board, 1)
+        move1 = ai_student(the_board, 1)
         if the_board[0][move1] != 0:
             print('ERROR: The chosen column is already full.')
         the_board = update_board(the_board, move1, 1)
         #print_board(the_board) # Uncomment this line for visualisation / debugging
         if check_win(the_board, move1, 1):
-            print('Player 🔴 won!')
+            #print('Player 🔴 won!')
             return 1
 
         # print('Player 🔵 turn:')
         ####################################################################################
         ### Replace the line below with your own AI for sections 3 and 4 of the homework ###
         ####################################################################################
-        move2 = ai_student(the_board, 2)
+        move2 = ai_random(the_board, 2)
         if the_board[0][move2] != 0:
             print('ERROR: The chosen column is already full.')
         the_board = update_board(the_board, move2, 2)
         #print_board(the_board)  # Uncomment this line for visualisation / debugging
         if check_win(the_board, move2, 2):
-            print('Player 🔵 won!')
+            #print('Player 🔵 won!')
             return 2
-    print('Draw!')
+    #print('Draw!')
     return 0
 
 def run_game_with_player():
@@ -223,3 +223,6 @@ def run_game_with_player():
             return 2
     print('Draw!')
     return 0
+
+#To play with the IA, uncomment the line below
+#run_game_with_player()
