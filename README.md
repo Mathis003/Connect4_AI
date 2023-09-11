@@ -41,9 +41,8 @@ python main.py
 
 ## Acknowledgments
 The game logic and AI algorithms are based on classic Connect 4 rules and strategies.
-
 The weak AI makes random moves, except when the player or the AI can win on the next move.
-The strong AI utilizes the minimax algorithm for intelligent gameplay.
+The strong AI use the minimax algorithm for intelligent gameplay.
 
 ## Screenshots
 
