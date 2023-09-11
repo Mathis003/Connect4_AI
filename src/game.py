@@ -2,48 +2,10 @@ from src.functions import *
 from src.players.good_IA import GOOD_IA
 from src.players.bad_IA import BAD_IA
 from src.configs import *
-
-pygame.init()
+import time
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Connect 4")
-
-title_text_surface = FONT.render("Connect 4", True, (0, 0, 0))
-
-title_text_rect = title_text_surface.get_rect()
-title_text_rect.center = (WIDTH // 2, SQUARE_SIZE // 2)
-
-for x in range(title_text_surface.get_width()):
-    
-    g = x / title_text_surface.get_width() * 173
-
-    for y in range(title_text_surface.get_height()):
-        pixel_color = title_text_surface.get_at((x, y))
-        if pixel_color != (0, 0, 0, 0):
-            title_text_surface.set_at((x, y), (255, g, 0))
-
-
-menu_text = [
-    "Menu",
-    "Jouer contre une IA:",
-    "1. IA Nulle",
-    "2. IA Forte",
-    "Appuyez sur 1 ou 2",
-    "pour choisir,",
-    "ESC pour quitter."
-]
-
-end_menu_text = [
-    "Appuyez sur 1",
-    "pour rejouer,",
-    "ESC pour quitter."
-]
-
-
-# Positionnement des textes
-text_spacing = 80
-text_x = WIDTH // 2
-text_y = HEIGHT // 2 - (len(menu_text) * text_spacing) // 2
 
 
 class Game:
@@ -95,6 +57,9 @@ class Game:
     def run(self):
 
         while not self.game_over:
+            
+
+            ### Events
 
             for event in pygame.event.get():
 
@@ -136,47 +101,56 @@ class Game:
                                 self.board[row][col] = self.current_player
 
                                 if check_win(self.board, col, self.current_player):
-                                    print('Player 🔴 won!')
                                     self.end_menu = True
                                 
                                 self.counter += 1
+                                screen.fill((0, 0, 0))
+                                self.draw_board(self.board)
+                                screen.blit(TITLE_TEXT_SURFACE, TITLE_TEXT_RECT)
+                                pygame.display.update()
+                                time.sleep(1)
                         
                         # Alterne entre les joueurs 1 et 2
                         self.current_player = 3 - self.current_player
-                
+            
+            ### Game elements
+
             # Si le joueur est dans le menu
             if self.menu:
                 screen.fill((0, 0, 0))
-                text_y = HEIGHT // 2 - (len(menu_text) * text_spacing) // 2
+                text_y = HEIGHT // 2 - (len(MENU_TEXT) * TEXT_SPACING) // 2
 
-                for line in menu_text:
+                for line in MENU_TEXT:
                     text = FONT.render(line, True, (255, 255, 255))
-                    text_rect = text.get_rect(center=(text_x, text_y))
+                    text_rect = text.get_rect(center=(TEXT_X, text_y))
                     screen.blit(text, text_rect)
-                    text_y += text_spacing
+                    text_y += TEXT_SPACING
             
             # Si le joueur est dans le menu de fin
             elif self.end_menu:
                 screen.fill((0, 0, 0))
-                text_y = HEIGHT // 2 - 1/2 * (len(menu_text) * text_spacing) // 2
+                text_y = HEIGHT // 2 - 1/2 * (len(MENU_TEXT) * TEXT_SPACING) // 2
 
                 if self.win:
                     first_line = "You are the winner!"
-                else:
+                elif not self.win:
                     first_line = "You are the loser!"
+                else:
+                    first_line = "Draw!"
                 text = FONT.render(first_line, True, (255, 255, 255))
-                text_rect = text.get_rect(center=(text_x, text_y))
+                text_rect = text.get_rect(center=(TEXT_X, text_y))
                 screen.blit(text, text_rect)
-                text_y += text_spacing
+                text_y += TEXT_SPACING
 
-                for line in end_menu_text:
+                for line in END_MENU_TEXT:
                     text = FONT.render(line, True, (255, 255, 255))
-                    text_rect = text.get_rect(center=(text_x, text_y))
+                    text_rect = text.get_rect(center=(TEXT_X, text_y))
                     screen.blit(text, text_rect)
-                    text_y += text_spacing
+                    text_y += TEXT_SPACING
 
             # Si le joueur est dans le jeu
             else:
+                # Si c'est le tour de l'IA de jouer
                 if self.current_player == 2:
                     col = self.opponent_player.get_move(self.board, self.current_player)
                     availables_moves = get_availables_moves(self.board)
@@ -186,7 +160,6 @@ class Game:
                             self.board[row][col] = self.current_player
 
                             if check_win(self.board, col, self.current_player):
-                                print('Player 🔵 won!')
                                 self.end_menu = True
                                 self.win = False
                                 
@@ -197,10 +170,10 @@ class Game:
 
                 screen.fill((0, 0, 0))
                 self.draw_board(self.board)
-                screen.blit(title_text_surface, title_text_rect)
+                screen.blit(TITLE_TEXT_SURFACE, TITLE_TEXT_RECT)
 
-                if self.counter >= 21:
-                    print("Draw!")
+                if self.counter == 42:
+                    self.win = None
                     self.end_menu = True
 
             pygame.display.update()
