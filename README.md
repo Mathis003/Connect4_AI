@@ -47,4 +47,4 @@ The strong AI utilizes the minimax algorithm for intelligent gameplay.
 
 ## Screenshots
 
-# <p align="center"> <img src="assets/image_game_example.png" height="100"/> </p>
+# <p align="center"> <img src="assets/image_game_example.png" width="800"/> </p>
