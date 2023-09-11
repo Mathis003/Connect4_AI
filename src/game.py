@@ -9,9 +9,7 @@ pygame.display.set_caption("Connect 4")
 
 
 class Game:
-
     def __init__(self):
-
         self.board = [[0] * COLUMNS for _ in range(ROWS)]
         self.current_player = 1
         self.opponent_player = None
@@ -58,7 +56,6 @@ class Game:
 
         while not self.game_over:
             
-
             ### Events
 
             for event in pygame.event.get():
@@ -67,7 +64,6 @@ class Game:
                     self.game_over = True
                     pygame.quit()
                 
-
                 if event.type == pygame.KEYDOWN:
                     if self.menu or self.end_menu:
                         if event.key == pygame.K_ESCAPE:
@@ -128,7 +124,7 @@ class Game:
             
             # Si le joueur est dans le menu de fin
             elif self.end_menu:
-                screen.fill((0, 0, 0))
+                time.sleep(2)
                 text_y = HEIGHT // 2 - 1/2 * (len(MENU_TEXT) * TEXT_SPACING) // 2
 
                 if self.win:
