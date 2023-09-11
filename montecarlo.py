@@ -40,8 +40,6 @@ if __name__ == '__main__':
         pool.close()
         pool.join()
 
-        print(list_numbers)
-
         for f in range(N):
             if f == 0:
                 new_list = list_numbers[:(f + 1) * nb_games[i] + 1]
@@ -80,4 +78,5 @@ if __name__ == '__main__':
     plt.ylabel('Probabilite en %')
     plt.xscale("log")
     plt.ylim((-10,100))
+    plt.savefig('war_IA_graph.pdf')
     plt.show()
