@@ -7,7 +7,6 @@ class BAD_IA:
         pass
 
     def get_move(self, arg_board, player):
-
         board = np.copy(arg_board)
         nonfull_cols = np.where(board[0] == 0)[0]
         for col in nonfull_cols:
