@@ -1,6 +1,9 @@
+from src.game import Game
+from src.players.bad_IA import BAD_IA
+from src.players.good_IA import GOOD_IA
+
 import numpy as np
 import matplotlib.pyplot as plt
-import connect4
 import time
 from multiprocessing import Pool, cpu_count
 
@@ -14,6 +17,13 @@ draw = np.zeros((N, len(nb_games)))
 
 if __name__ == '__main__':
 
+    depth_tree = 4
+
+    bad_IA = BAD_IA()
+    good_IA = GOOD_IA(depth_tree)
+
+    game = Game(good_IA, bad_IA, False)
+
     list_numbers = []
 
     def callback(result):
@@ -24,14 +34,13 @@ if __name__ == '__main__':
         pool = Pool(processes=(cpu_count()))
         for j in range(N):
 
-            number0, number1 = 0, 0
-            d = [k for k in range(nb_games[i])]
-
-            for iter in d:
-                pool.apply_async(connect4.run_game, args=(), callback=callback)
+            for _ in range(nb_games[i]):
+                pool.apply_async(game.run, args=(), callback=callback)
 
         pool.close()
         pool.join()
+
+        print(list_numbers)
 
         for f in range(N):
             if f == 0:
@@ -47,13 +56,15 @@ if __name__ == '__main__':
 
         list_numbers = []
 
+    print("wins = {}".format(win1))
+    print("draws = {}".format(draw))
 
     win1_mean = np.mean(win1, axis=0)
     draw_mean = np.mean(draw, axis=0)
-    print(win1)
-    print(draw)
+
     print("win mean = {}".format(win1_mean))
     print("draw mean = {}".format(draw_mean))
+
     elapsed = time.time() - t
     print("Time elapsed : {}".format(elapsed))
 

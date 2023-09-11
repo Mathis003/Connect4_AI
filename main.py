@@ -12,9 +12,9 @@ if __name__ == "__main__":
     good_IA = GOOD_IA(depth_tree)
     player = Player()
 
-    game1 = Game(player, good_IA)
-    game2 = Game(player, bad_IA)
-    game3 = Game(bad_IA, good_IA)
+    game1 = Game(player, good_IA, True)
+    game2 = Game(player, bad_IA, True)
+    game3 = Game(bad_IA, good_IA, True)
 
     game1.run()
     game2.run()
