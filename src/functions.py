@@ -153,20 +153,6 @@ def check_win(board, col, player):
     return False
 
 
-def print_board(board):
-    for i in range(6):
-        print('|', end='')
-        for j in range(7):
-            if board[i][j] == 1:
-                print('🔴 ', end='') # Change the red dot with '1' or 'x' if your terminal does not support colours
-            elif board[i][j] == 2:
-                print('🔵 ', end='')  # Change the blue dot with '2' or 'o' if your terminal does not support colours
-            else:
-                print('   ', end='')
-        print('|')
-    print('')
-
-
 def get_opponent_player(player):
     if player == 1:
         return 2
